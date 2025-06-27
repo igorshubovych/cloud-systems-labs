@@ -5,7 +5,7 @@ from tabulate import tabulate
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import LinearSVC, SVC
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
 
 
 # Читаємо дані з CSV файлу
@@ -38,7 +38,7 @@ models = {
     "SVC (sigmoid kernel)": SVC(kernel="sigmoid"),
 }
 
-# Тренємо кожну модель та оцінюємо їх продуктивність
+# Навчаємо кожну модель та вимірюємо час тренування
 model_results = {}
 for model_name, model in models.items():
     # Train the model and measure time
@@ -46,6 +46,11 @@ for model_name, model in models.items():
     model.fit(X_train, y_train)
     end_train = time.time()
 
+    model_results[model_name] = {"train_time": end_train - start_train}
+
+
+# Тестуємо кожну модель та оцінюємо їх продуктивність
+for model_name, model in models.items():
     # Predict and measure time
     start_pred = time.time()
     y_pred = model.predict(X_test)
@@ -53,22 +58,27 @@ for model_name, model in models.items():
 
     # Calculate accuracy
     accuracy = accuracy_score(y_test, y_pred)
+    rpt = classification_report(y_test, y_pred, output_dict=True)
 
-    model_results[model_name] = {
-        "accuracy": accuracy,
-        "train_time": end_train - start_train,
-        "predict_time": end_pred - start_pred,
-    }
+    model_results[model_name]["accuracy"] = accuracy
+    model_results[model_name]["predict_time"] = end_pred - start_pred
+    model_results[model_name]["macro avg precision"] = rpt["macro avg"]["precision"]
+    model_results[model_name]["macro avg recall"] = rpt["macro avg"]["recall"]
+    model_results[model_name]["macro avg f1-score"] = rpt["macro avg"]["f1-score"]
 
 # Форматуємо результати для виводу
 model_results_output = []
 for model_name in model_results.keys():
+    result = model_results[model_name]
     model_results_output.append(
         [
             model_name,
-            model_results[model_name]["accuracy"],
-            model_results[model_name]["train_time"],
-            model_results[model_name]["predict_time"],
+            result["accuracy"],
+            result["macro avg precision"],
+            result["macro avg recall"],
+            result["macro avg f1-score"],
+            result["train_time"],
+            result["predict_time"],
         ]
     )
 
@@ -76,7 +86,15 @@ for model_name in model_results.keys():
 print(
     tabulate(
         model_results_output,
-        headers=["Model", "Accuracy", "Train Time (sec)", "Predict Time (sec)"],
+        headers=[
+            "Model",
+            "Accuracy",
+            "Macro Avg Precision",
+            "Macro Avg Recall",
+            "Macro Avg F1-score",
+            "Train Time (sec)",
+            "Predict Time (sec)",
+        ],
         tablefmt="orgtbl",
     )
 )
