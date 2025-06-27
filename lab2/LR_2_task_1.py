@@ -1,9 +1,8 @@
 import pandas as pd
-import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import LinearSVC
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
 
 # Читаємо CSV файл
 df = pd.read_csv("income_data.csv", header=None, skipinitialspace=True)
@@ -39,7 +38,8 @@ model.fit(X_train, y_train)
 # Оцінюємо точність моделі за допомогою тестового набору
 y_pred = model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
-print(f"Точність моделі LinearSVC: {accuracy:.2f}")
+print(f"Точність моделі LinearSVC: {accuracy:.2f}\n")
+print("Звіт по класифікації\n", classification_report(y_test, y_pred))
 
 
 # Сирі вхідні дані (з прикладу)
